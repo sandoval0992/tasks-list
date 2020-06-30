@@ -8,16 +8,22 @@ const taskInput = document.querySelector('#task');
 loadEventListeners();
 
 // Load all event listeners
-function loadEventListeners(){
+function loadEventListeners() {
     // Add task event
-    form.addEventListener('submit',addTask);
+    form.addEventListener('submit', addTask);
+    // Remove task
+    taskList.addEventListener('click', removeTask);
+    // Clear task event
+    clearBtn.addEventListener('click', clearTasks);
+    // FIlter tasks
+    filter.addEventListener('keyup', filterTasks);
 }
 
 // Add task
-function addTask(e){
+function addTask(e) {
     e.preventDefault();
 
-    if(taskInput.value === ''){
+    if (taskInput.value === '') {
         return;
     }
 
@@ -38,14 +44,55 @@ function addTask(e){
     const link = document.createElement('a');
     // Add class to link
     link.className = 'delete-item secondary-content';
-    // Add icon html    
+    // Add icon html
     link.innerHTML = '<i class="fa fa-remove"></i>';
     // Append the link to li
     li.appendChild(link);
-    // Append li to ul 
+    // Append li to ul
     taskList.appendChild(li);
     // Clear taskInput
     taskInput.value = '';
+
+
+}
+
+function removeTask(e) {
+    if (e.target.parentElement.classList.contains('delete-item')) {
+        if (confirm('Are you sure?')) {
+            e.target.parentElement.parentElement.remove();
+        }
+    }
+
+}
+
+// Clear tasks
+function clearTasks() {
+    //taskList.innerHTML = '';
+
+    // Faster
+    while (taskList.firstChild) {
+        taskList.removeChild(taskList.firstChild);
+    }
+    // https://jsperf.com/innerhtml-vs-removechild
+}
+
+// Filter tasks
+
+function filterTasks(e) {
+    const text = e.target.value.toLowerCase();
+
+    document.querySelectorAll('.collection-item').forEach(function (task) {
+        console.log(task);
+        const item = task.firstChild.textContent;
+        if (item.toLowerCase().indexOf(text) != -1) {
+            task.style.display = 'block';
+            console.log('block');
+        } else {
+            task.style.display = 'none';
+            console.log('none');
+        }
+    });
+
 
 
 }
