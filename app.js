@@ -4,85 +4,75 @@ const clearBtn = document.querySelector('.clear-tasks');
 const filter = document.querySelector('#filter');
 const taskInput = document.querySelector('#task');
 
-// Load all event listeners
 loadEventListeners();
 
-// Load all event listeners
 function loadEventListeners() {
-    // Add task event
+    document.addEventListener('DOMContentLoaded', createTasksList);
     form.addEventListener('submit', addTask);
-    // Remove task
     taskList.addEventListener('click', removeTask);
-    // Clear task event
     clearBtn.addEventListener('click', clearTasks);
-    // FIlter tasks
     filter.addEventListener('keyup', filterTasks);
 }
 
-// Add task
+function createTasksList() {
+    let tasks = getTasksFromLocalStorage();
+    tasks.forEach(function (taskName) {
+        createListItem(taskName);
+    });
+}
+
 function addTask(e) {
     e.preventDefault();
-
-    if (taskInput.value === '') {
-        return;
+    let taskName = taskInput.value.trim();
+    if (taskName !== '') {
+        if (taskExists(taskName)) {
+            alert(`Task '${taskName}' already exists`);
+        } else {
+            createListItem(taskName);
+            storeTaskInLocalStorage(taskName);
+            taskInput.value = '';
+        }
     }
+}
 
-    /*
-    const li = document.createElement('li');
-    console.log(li)
-    li.innerText = taskInput.value;
-    taskList.appendChild(li);
-    */
+function taskExists(taskName) {
+    const tasks = getTasksFromLocalStorage();
+    return (tasks.length > 0 && tasks.indexOf(taskName) >= 0) ? true : false;
 
-    // Create li element
+}
+
+function createListItem(taskName) {
     const li = document.createElement('li');
-    // Add class
     li.className = 'collection-item';
-    // Create text node and append to li
-    li.appendChild(document.createTextNode(taskInput.value));
-    // Create new link element
+    li.appendChild(document.createTextNode(taskName));
     const link = document.createElement('a');
-    // Add class to link
     link.className = 'delete-item secondary-content';
-    // Add icon html
     link.innerHTML = '<i class="fa fa-remove"></i>';
-    // Append the link to li
     li.appendChild(link);
-    // Append li to ul
     taskList.appendChild(li);
-    // Clear taskInput
-    taskInput.value = '';
-
-
 }
 
 function removeTask(e) {
     if (e.target.parentElement.classList.contains('delete-item')) {
         if (confirm('Are you sure?')) {
-            e.target.parentElement.parentElement.remove();
+            const item = e.target.parentElement.parentElement
+            item.remove();
+            removeTaskFromLocalStorage(item);
         }
     }
-
 }
 
-// Clear tasks
 function clearTasks() {
-    //taskList.innerHTML = '';
-
-    // Faster
     while (taskList.firstChild) {
         taskList.removeChild(taskList.firstChild);
     }
-    // https://jsperf.com/innerhtml-vs-removechild
+    clearTasksFromLocalStorage();
 }
-
-// Filter tasks
 
 function filterTasks(e) {
     const text = e.target.value.toLowerCase();
 
     document.querySelectorAll('.collection-item').forEach(function (task) {
-        console.log(task);
         const item = task.firstChild.textContent;
         if (item.toLowerCase().indexOf(text) != -1) {
             task.style.display = 'block';
@@ -92,9 +82,30 @@ function filterTasks(e) {
             console.log('none');
         }
     });
-
-
-
 }
 
-//console.log(taskInput);
+function storeTaskInLocalStorage(task) {
+    let tasks = getTasksFromLocalStorage();
+    tasks.push(task);
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+}
+
+function removeTaskFromLocalStorage(task) {
+    let tasks = getTasksFromLocalStorage();
+    tasks.forEach(function (element, index) {
+        if (task.textContent === element) {
+            tasks.splice(index, 1);
+        }
+    });
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+}
+
+function clearTasksFromLocalStorage() {
+    localStorage.clear();
+}
+
+function getTasksFromLocalStorage() {
+    const tasksList = localStorage.getItem('tasks');
+    return tasksList === null ? [] : JSON.parse(tasksList);
+}
+
